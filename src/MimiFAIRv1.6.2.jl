@@ -38,6 +38,7 @@ include(joinpath("src/components", "co2_cycle.jl"))
 include(joinpath("src/components", "other_ghg_cycles.jl"))
 include(joinpath("src/components", "o3_depleting_cycles.jl"))
 include(joinpath("src/components", "o3_forcing.jl"))
+include(joinpath("src/components", "aerosol_indirect_forcing.jl"))
 include(joinpath("src/components", "temperature.jl"))
 
     #TODO = Set up function to load this default data for FAIR (pre-industrial values, etc.)
@@ -76,6 +77,7 @@ include(joinpath("src/components", "temperature.jl"))
     add_comp!(m, other_ghg_cycles)
     add_comp!(m, o3_depleting_cycles)
     add_comp!(m, o3_forcing)
+    add_comp!(m, aerosol_indirect_forcing)
     add_comp!(m, temperature)
 
     # ---------------------------------------------
@@ -144,17 +146,6 @@ include(joinpath("src/components", "temperature.jl"))
     set_param!(m, :temperature, :ocean_heat_capacity, [8.2, 109.0])
     set_param!(m, :temperature, :forcing, python_forcing_total)
 
-    # ---- Parameters Shared Across Multiple Components ---- #
-    set_param!(m, :dt, 1.0)
-    set_param!(m, :CH₄_pi, gas_data[gas_data.gas .== "CH4", :pi_conc][1])
-    set_param!(m, :emiss2conc_co2, conversions[conversions.gases .== "CO2", :emiss2conc][1])
-    set_param!(m, :CO₂_pi, gas_data[gas_data.gas .== "CO2", :pi_conc][1])
-    set_param!(m, :N₂O_pi, gas_data[gas_data.gas .== "N2O", :pi_conc][1])
-
-    #set_param!(m, :N₂O_0, gas_data[gas_data.gas .== "N2O", :pi_conc][1])
-    set_param!(m, :other_ghg_0, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc])
-    set_param!(m, :ods_0, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc])
-
 
 
     # ---- Ozone Radiative Forcing ---- #
@@ -192,6 +183,35 @@ include(joinpath("src/components", "temperature.jl"))
     #set_param!(m, :o3_forcing,  :CO₂, python_concentrations[:,1])
     set_param!(m, :o3_forcing,  :temperature, python_temperature)
     set_param!(m, :o3_forcing,  :conc_ODS, python_concentrations[:,16:31])
+
+
+
+    # ---- Aerosol Indirect Radiative Forcing ---- #
+    set_param!(m, :aerosol_indirect_rf, :ϕ, -1.95011431)
+    set_param!(m, :aerosol_indirect_rf, :b_SOx, 0.01107147)
+    set_param!(m, :aerosol_indirect_rf, :b_POM, 0.01387492)
+    #set_param!(m, :aerosol_indirect_rf, :rf_scale_aero_indirect, 0.0)
+    #set_param!(m, :aerosol_indirect_rf, :model_years, collect(start_year:end_year))
+    set_param!(m, :aerosol_indirect_rf, :SOx_emiss_1765, 1.0)
+    set_param!(m, :aerosol_indirect_rf, :BC_OC_emiss_1765, 11.2)
+    set_param!(m, :aerosol_indirect_rf, :scale_AR5, true)
+    set_param!(m, :aerosol_indirect_rf, :F_1765, -0.3002836449793625)
+    set_param!(m, :aerosol_indirect_rf, :F_2011, -1.5236182344467388)
+
+
+    # ---- Parameters Shared Across Multiple Components ---- #
+    set_param!(m, :dt, 1.0)
+    set_param!(m, :CH₄_pi, gas_data[gas_data.gas .== "CH4", :pi_conc][1])
+    set_param!(m, :emiss2conc_co2, conversions[conversions.gases .== "CO2", :emiss2conc][1])
+    set_param!(m, :CO₂_pi, gas_data[gas_data.gas .== "CO2", :pi_conc][1])
+    set_param!(m, :N₂O_pi, gas_data[gas_data.gas .== "N2O", :pi_conc][1])
+    set_param!(m, :SOx_emiss, rcp_emissions.SOx)
+    set_param!(m, :BC_emiss, rcp_emissions.BC)
+    set_param!(m, :OC_emiss, rcp_emissions.OC)
+    #set_param!(m, :N₂O_0, gas_data[gas_data.gas .== "N2O", :pi_conc][1])
+    set_param!(m, :other_ghg_0, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc])
+    set_param!(m, :ods_0, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc])
+    set_param!(m, :fix_pre1850_RCP, false)
 
 
 
