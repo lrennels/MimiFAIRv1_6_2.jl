@@ -4,8 +4,8 @@
 
 @defcomp co2_cycle begin
 
-    co2_0           = Parameter()   # Carbon dioxide concentration in initial model period (ppm).
-    co2_pi          = Parameter()   # Pre-industrial carbon dioxide concentrations (ppm).
+    CO₂_0           = Parameter()   # Carbon dioxide concentration in initial model period (ppm).
+    CO₂_pi          = Parameter()   # Pre-industrial carbon dioxide concentrations (ppm).
    
 
        emiss2conc_co2  = Parameter()   # Conversion factor between emissions (GtC) and concentrations (ppm).
@@ -45,7 +45,7 @@
             # Set initial values.
            # v.GU_co2[t]  = p.GU_co2_0
             v.R_co2[t,:] = p.R0_co2
-            v.co2[t]     = p.co2_0
+            v.co2[t]     = p.CO₂_0
 			v.cumulative_emissions_CO2[t] = p.cumulative_emissions_CO2₀
 			v.airborne_emissions_CO2[t] = p.airborne_emissions_CO2₀
 
@@ -81,7 +81,7 @@
 
   			# Calculate atmospheric CO₂ concentration.
             #v.co2[t] = p.co2_pi + p.emiss2conc_co2 * (v.GA_co2[t-1] + v.GA_co2[t]) / 2.0
-            v.co2[t] = p.co2_pi + (v.GA_co2[t-1] + v.GA_co2[t]) / 2.0
+            v.co2[t] = p.CO₂_pi + (v.GA_co2[t-1] + v.GA_co2[t]) / 2.0
 
             # Calculate total emissions remaining in the atmosphere
             v.airborne_emissions_CO2[t] = v.GA_co2[t] * p.emiss2conc_co2
