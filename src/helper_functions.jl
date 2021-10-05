@@ -43,7 +43,7 @@ function load_fair_data(start_year::Int, end_year::Int, rcp_scenario::String)
     # Time-varying shares of anthropogenic methane attribuatable to fossil sources.
     ch4_fossil_frac_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "fossilCH4_fraction.csv"), skiplines_begin=4))[:,Symbol(rcp_scenario)]
     # Information on various gas specieis.
-    gas_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "fair_ghg_species_data.csv"), skiplines_begin=10))
+    gas_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "fair_ghg_species_data.csv"), skiplines_begin=11))
 
     #---------------------------------------
     # Emissions
