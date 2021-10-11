@@ -32,17 +32,17 @@ include(joinpath("components", "temperature.jl"))
 
 
 # Create a function to load MimiFAIRv1.6.2.
-function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year::Int=2100)
+function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_year::Int=2300)
 
     # ---------------------------------------------
     # Set Up Data and Parameter Values
     # ---------------------------------------------
 
     # Load RCP and other data needed to construct FAIR (just hard-coded 1765 as start year because not using the RCP emissions from this function).
-    rcp_emissions, volcano_forcing, solar_forcing, gas_data, gas_fractions, conversions = load_fair_data(1765, end_year, rcp_scenario)
+    rcp_emissions, volcano_forcing, solar_forcing, gas_data, gas_fractions, conversions = load_fair_data(1765, end_year, "RCP85")
 
-    # Load IPCC AR6 emissions scenario used for FAIRv1.6.2 ensemble runs (just SSP2-45 for now, spans 1750-2100).
-    ar6_emissions_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "AR6_emissions_ssp245.csv")))
+    # Load IPCC AR6 emissions scenario used for FAIRv1.6.2 ensemble runs (options = "ssp119", "ssp126", "ssp245", "ssp370", "ssp460", "ssp585").
+    ar6_emissions_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "AR6_emissions_"*ar6_scenario*"_1750_2300.csv")))
 
     # Subset AR6 emissions to proper years.
     emission_indices = indexin(collect(start_year:end_year), ar6_emissions_raw.Year)
@@ -57,6 +57,9 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
 
     # Load IPCC solar forcing scenario (note, dataset runs from -6755 to 2299).
     ar6_solar_forcing_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "ar6_solar_erf.csv")))
+
+    # For cases when you want to run the model out to 2300, assume solar forcing value in 2300 follows the trend from 2298-2299.
+    push!(ar6_solar_forcing_raw, [2300 ar6_solar_forcing_raw[end,"solar_erf"] + (ar6_solar_forcing_raw[end,"solar_erf"] - ar6_solar_forcing_raw[(end-1),"solar_erf"])])
 
     # Subset solar forcing data to proper years.
     solar_indices = indexin(collect(start_year:end_year), ar6_solar_forcing_raw.year)
