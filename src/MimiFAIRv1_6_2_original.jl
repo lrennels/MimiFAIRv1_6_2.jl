@@ -1,81 +1,17 @@
-#module MimiFAIRv1_6_2
-
-# Load required packages.
 using CSVFiles, DataFrames, Mimi
 
-# Load helper functions and MimiFAIRv1.6.2 model commponent files.
-include("helper_functions.jl")
+# Create a function to load MimiFAIRv1.6.2 in its original form 
 
-include(joinpath("components", "ch4_cycle.jl"))
-include(joinpath("components", "n2o_cycle.jl"))
-include(joinpath("components", "co2_cycle.jl"))
-include(joinpath("components", "other_ghg_cycles.jl"))
-include(joinpath("components", "o3_depleting_substance_cycles.jl"))
-include(joinpath("components", "co2_forcing.jl"))
-include(joinpath("components", "ch4_forcing.jl"))
-include(joinpath("components", "n2o_forcing.jl"))
-include(joinpath("components", "o3_forcing.jl"))
-include(joinpath("components", "aerosol_direct_forcing.jl"))
-include(joinpath("components", "aerosol_indirect_forcing.jl"))
-include(joinpath("components", "other_ghg_forcing.jl"))
-include(joinpath("components", "o3_depleting_substance_forcing.jl"))
-include(joinpath("components", "contrails_forcing.jl"))
-include(joinpath("components", "black_carbon_snow_forcing.jl"))
-include(joinpath("components", "landuse_forcing.jl"))
-include(joinpath("components", "total_forcing.jl"))
-include(joinpath("components", "temperature.jl"))
-
-
-# Create a function to load MimiFAIRv1.6.2.
-function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year::Int=2100)
+# This is the version of MimiFAIRv1_6_2 that will match the Python version and 
+# can be used for testing.
+function get_model_original(;rcp_scenario::String="RCP85", start_year::Int=1765, end_year::Int=2500)
 
     # ---------------------------------------------
     # Set Up Data and Parameter Values
     # ---------------------------------------------
 
-    # Load RCP and other data needed to construct FAIR (just hard-coded 1765 as start year because not using the RCP emissions from this function).
-    rcp_emissions, volcano_forcing, solar_forcing, gas_data, gas_fractions, conversions = load_fair_data(1765, end_year, rcp_scenario)
-
-    # Load IPCC AR6 emissions scenario used for FAIRv1.6.2 ensemble runs (just SSP2-45 for now, spans 1750-2100).
-    ar6_emissions_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "AR6_emissions_ssp245.csv")))
-
-    # Subset AR6 emissions to proper years.
-    emission_indices = indexin(collect(start_year:end_year), ar6_emissions_raw.Year)
-    ar6_emissions = ar6_emissions_raw[emission_indices, :]
-
-    # Load IPCC AR6 natural CH₄ and N₂O emissions for FAIR (spans 1750-2500).
-    ar6_natural_emissions_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "fair_wg3_natural_ch4_n2o.csv")))
-
-    # Subset natural CH₄ and N₂O emissions to proper years.
-    natural_indices = indexin(collect(start_year:end_year), ar6_natural_emissions_raw.year)
-    ar6_natural_emissions = ar6_natural_emissions_raw[natural_indices, [:CH4, :N2O]]
-
-    # Load IPCC solar forcing scenario (note, dataset runs from -6755 to 2299).
-    ar6_solar_forcing_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "ar6_solar_erf.csv")))
-
-    # Subset solar forcing data to proper years.
-    solar_indices = indexin(collect(start_year:end_year), ar6_solar_forcing_raw.year)
-    ar6_solar_forcing = ar6_solar_forcing_raw[solar_indices, :solar_erf]
-
-    # Load IPCC AR6 volcanic forcing scenario (note, dataset runs from -500 to 2019).
-    ar6_volcanic_forcing_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "ar6_volcanic_erf.csv")))
-
-    # Extract indices for relevant years.
-    if end_year > 2019
-        volcanic_indices = indexin(collect(start_year:2019), ar6_volcanic_forcing_raw.year)
-    else
-        volcanic_indices = indexin(collect(start_year:end_year), ar6_volcanic_forcing_raw.year)
-    end
-
-    # Create an empty array and store subset of volcanic forcings.
-    ar6_volcanic_forcing = zeros(length(start_year:end_year))
-    ar6_volcanic_forcing[1:length(volcanic_indices)] = ar6_volcanic_forcing_raw[volcanic_indices, :volcanic_erf]
-
-    # From FAIR AR6 code on volcanic forcing: "ramp down last 10 years to zero according to https://www.geosci-model-dev.net/9/3461/2016/gmd-9-3461-2016.html"
-    # This copies that code exactly.
-    index_2019 = findfirst(x->x==2019, start_year:end_year)
-    ar6_volcanic_forcing[index_2019:(index_2019+10)] = ar6_volcanic_forcing[index_2019] .* collect(range(1,0,length=11))
-
+    # Load RCP and other data needed to construct FAIR.
+    rcp_emissions, volcano_forcing, solar_forcing, gas_data, gas_fractions, conversions = load_fair_data(start_year, end_year, rcp_scenario)
 
     # Names of minor greenhouse gases and ozone-depleting substances (used or indexing).
     other_ghg_names = ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "SF6"]
@@ -128,17 +64,17 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
     set_param!(m, :co2_cycle, :τ_co2, [1000000, 394.4, 36.54, 4.304])
     set_param!(m, :co2_cycle, :a_co2, [0.2173,0.2240,0.2824,0.2763])
     set_param!(m, :co2_cycle, :R0_co2, [0.0003062168651584551, 0.0003156584344017209, 0.0003979550976564552, 0.0003893590420767655]) # From FAIR model run.
-    set_param!(m, :co2_cycle, :E_co2, ar6_emissions.FossilCO2 .+ ar6_emissions.OtherCO2)
+    set_param!(m, :co2_cycle, :E_co2, rcp_emissions.FossilCO2 .+ rcp_emissions.OtherCO2)
     set_param!(m, :co2_cycle, :cumulative_emissions_CO2₀, 0.003)
     set_param!(m, :co2_cycle, :airborne_emissions_CO2₀, 0.0)
     set_param!(m, :co2_cycle, :iIRF_max, 97.0)
     connect_param!(m, :co2_cycle => :temperature, :temperature => :T)
 
     # ---- Methane Cycle ---- #
-    set_param!(m, :ch4_cycle, :fossil_emiss_CH₄, ar6_emissions.CH4)
-    set_param!(m, :ch4_cycle, :natural_emiss_CH₄, ar6_natural_emissions.CH4)
+    set_param!(m, :ch4_cycle, :fossil_emiss_CH₄, rcp_emissions.CH4)
+    set_param!(m, :ch4_cycle, :natural_emiss_CH₄, rcp_emissions.NaturalCH4)
     set_param!(m, :ch4_cycle, :τ_CH₄, 9.3)
-    set_param!(m, :ch4_cycle, :fossil_frac, ones(length(start_year:end_year)))
+    set_param!(m, :ch4_cycle, :fossil_frac, gas_fractions.ch4_fossil)
     set_param!(m, :ch4_cycle, :oxidation_frac, 0.61)
     set_param!(m, :ch4_cycle, :mol_weight_CH₄, gas_data[gas_data.gas .== "CH4", :mol_weight][1])
     set_param!(m, :ch4_cycle, :mol_weight_C, gas_data[gas_data.gas .== "C", :mol_weight][1])
@@ -146,26 +82,26 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
     set_param!(m, :ch4_cycle, :CH₄_0, gas_data[gas_data.gas .== "CH4", :pi_conc_ar6][1])
 
     # ---- Nitrous Oxide Cycle ---- #
-    set_param!(m, :n2o_cycle, :fossil_emiss_N₂O, ar6_emissions.N2O)
-    set_param!(m, :n2o_cycle, :natural_emiss_N₂O, ar6_natural_emissions.N2O)
+    set_param!(m, :n2o_cycle, :fossil_emiss_N₂O, rcp_emissions.N2O)
+    set_param!(m, :n2o_cycle, :natural_emiss_N₂O, rcp_emissions.NaturalN2O)
     set_param!(m, :n2o_cycle, :τ_N₂O, 121.0)
     set_param!(m, :n2o_cycle, :emiss2conc_n2o, conversions[conversions.gases .== "N2O", :emiss2conc][1])
     set_param!(m, :n2o_cycle, :N₂O_0, gas_data[gas_data.gas .== "N2O", :pi_conc_ar6][1])
 
     # ---- Other Well-Mixed Greenhouse Gas Cycles ---- #
     set_param!(m, :other_ghg_cycles, :τ_other_ghg, gas_data[findall((in)(other_ghg_names), gas_data.gas), :lifetimes])
-    set_param!(m, :other_ghg_cycles, :emiss_other_ghg, Matrix(ar6_emissions[!,Symbol.(other_ghg_names)]))
+    set_param!(m, :other_ghg_cycles, :emiss_other_ghg, Matrix(rcp_emissions[!,Symbol.(other_ghg_names)]))
     set_param!(m, :other_ghg_cycles, :emiss2conc_other_ghg, conversions[findall((in)(other_ghg_names), conversions.gases), :emiss2conc])
     set_param!(m, :other_ghg_cycles, :other_ghg_0, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc_ar6])
 
     # ---- Ozone-Depleting Substance Gas Cycles ---- #
     set_param!(m, :o3_depleting_substance_cycles, :τ_ods, gas_data[findall((in)(ods_names), gas_data.gas), :lifetimes])
-    set_param!(m, :o3_depleting_substance_cycles, :emiss_ods, Matrix(ar6_emissions[!,Symbol.(ods_names)]))
+    set_param!(m, :o3_depleting_substance_cycles, :emiss_ods, Matrix(rcp_emissions[!,Symbol.(ods_names)]))
     set_param!(m, :o3_depleting_substance_cycles, :emiss2conc_ods, conversions[findall((in)(ods_names), conversions.gases), :emiss2conc])
     set_param!(m, :o3_depleting_substance_cycles, :ods_0, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc_ar6])
 
     # ---- Carbon Dioxide Radiative Forcing ---- #
-    set_param!(m, :co2_forcing, :F2x, 3.71)
+    set_param!(m, :F2x, 3.71)
     set_param!(m, :co2_forcing, :a₁, -2.4785e-07)
     set_param!(m, :co2_forcing, :b₁, 0.00075906)
     set_param!(m, :co2_forcing, :c₁, -0.0021492)
@@ -232,7 +168,7 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
     connect_param!(m, :o3_depleting_substance_forcing => :conc_ods, :o3_depleting_substance_cycles => :conc_ods)
 
     # ---- Contrails Radiative Forcing ---- #
-    set_param!(m, :contrails_forcing, :frac, zeros(length(start_year:end_year)))
+    set_param!(m, :contrails_forcing, :frac, gas_fractions.nox_aviation)
     set_param!(m, :contrails_forcing, :E_ref_contrails, 2.946)
     set_param!(m, :contrails_forcing, :F_ref_contrails, 0.0448)
     set_param!(m, :contrails_forcing, :ref_is_NO2, true)
@@ -245,7 +181,7 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
 
     # ---- Land Use Change Radiative Forcing ---- #
     set_param!(m, :landuse_forcing, :α_CO₂_land, (-0.2/190))
-    set_param!(m, :landuse_forcing, :landuse_emiss, ar6_emissions.OtherCO2)
+    set_param!(m, :landuse_forcing, :landuse_emiss, rcp_emissions.OtherCO2)
 
     # ---- Total Radiative Forcing ---- #
     set_param!(m, :total_forcing, :scale_CO₂, 1.0)
@@ -266,8 +202,8 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
     set_param!(m, :total_forcing, :scale_aerosol_direct_OC, 1.0)
     set_param!(m, :total_forcing, :scale_other_ghg, ones(length(other_ghg_names)))
     set_param!(m, :total_forcing, :scale_ods, ones(length(ods_names)))
-    set_param!(m, :total_forcing, :F_volcanic, ar6_volcanic_forcing)
-    set_param!(m, :total_forcing, :F_solar, ar6_solar_forcing)
+    set_param!(m, :total_forcing, :F_volcanic, volcano_forcing)
+    set_param!(m, :total_forcing, :F_solar, solar_forcing)
     set_param!(m, :total_forcing, :F_exogenous, zeros(length(start_year:end_year)))
     connect_param!(m, :total_forcing => :F_CO₂, :co2_forcing => :rf_co2)
     connect_param!(m, :total_forcing => :F_CH₄, :ch4_forcing => :rf_ch4)
@@ -307,22 +243,20 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1750, end_year
     set_param!(m, :N₂O_pi, gas_data[gas_data.gas .== "N2O", :pi_conc_ar6][1])
     set_param!(m, :ods_pi, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc_ar6])
     set_param!(m, :other_ghg_pi, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc_ar6])
-    set_param!(m, :SOx_emiss, ar6_emissions.SOx)
-    set_param!(m, :BC_emiss, ar6_emissions.BC)
-    set_param!(m, :OC_emiss, ar6_emissions.OC)
-    set_param!(m, :CO_emiss, ar6_emissions.CO)
-    set_param!(m, :NMVOC_emiss, ar6_emissions.NMVOC)
-    set_param!(m, :NH3_emiss, ar6_emissions.NH3)
-    set_param!(m, :NOx_emiss, ar6_emissions.NOx)
-    set_param!(m, :SOx_emiss_pi,   1.22002422)
-    set_param!(m, :CO_emiss_pi,    348.527359)
-    set_param!(m, :NMVOC_emiss_pi, 60.0218262)
-    set_param!(m, :NOx_emiss_pi,   3.87593407)
-    set_param!(m, :BC_emiss_pi,    2.09777075)
-    set_param!(m, :OC_emiss_pi,    15.4476682)
+    set_param!(m, :SOx_emiss, rcp_emissions.SOx)
+    set_param!(m, :BC_emiss, rcp_emissions.BC)
+    set_param!(m, :OC_emiss, rcp_emissions.OC)
+    set_param!(m, :CO_emiss, rcp_emissions.CO)
+    set_param!(m, :NMVOC_emiss, rcp_emissions.NMVOC)
+    set_param!(m, :NH3_emiss, rcp_emissions.NH3)
+    set_param!(m, :NOx_emiss, rcp_emissions.NOx)
+    set_param!(m, :SOx_emiss_pi,   0.0)
+    set_param!(m, :CO_emiss_pi,    0.0)
+    set_param!(m, :NMVOC_emiss_pi, 0.0)
+    set_param!(m, :NOx_emiss_pi,   0.0)
+    set_param!(m, :BC_emiss_pi,    0.0)
+    set_param!(m, :OC_emiss_pi,    0.0)
 
     # Return model
     return m
 end
-
-#end #module
