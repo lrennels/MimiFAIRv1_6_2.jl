@@ -1,11 +1,8 @@
 using JSON
 
-# Load FAIRv1.6.2 with IPCC AR6 settings.
-include("MimiFAIRv1_6_2_ipcc.jl")
-
 # Create a function that loads the AR6 constrained parameter set and runs a Monte Carlo with FAIRv1.6.2
 # Note: Maximum number of parameter samples is 2237
-function fair_monte_carlo_ar6(n_samples::Int)
+function fair_monte_carlo_ar6(n_samples::Int, ar6_scenario::String = "ssp245")
 
 	# Load FAIR constrained parameter samples from AR6.
 	params = JSON.parsefile(joinpath(@__DIR__, "..", "data", "model_data", "fair-1.6.2-wg3-params.json"))
@@ -21,7 +18,7 @@ function fair_monte_carlo_ar6(n_samples::Int)
 	index_2100 = findfirst(x -> x == 2100, 1750:2100)
 
 	# Create an instnace of MimiFAIRv1.6.2 with IPCC AR6 settings.
-	m = get_model()
+	m = get_model(ar6_scenario=ar6_scenario, start_year=1750, end_year=2100)
 
 	for i = 1:n_samples
 
