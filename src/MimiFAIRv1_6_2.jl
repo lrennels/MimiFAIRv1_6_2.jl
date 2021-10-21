@@ -8,6 +8,10 @@ using CSVFiles, DataFrames, Mimi
 # start_year::Int=1750, end_year::Int=2100)
 include("MimiFAIRv1_6_2_original.jl")
 
+# includes a fair monte carlo function that replicates the Python AR6 behavior
+include(joinpath("mcs", "utils.jl"))
+include(joinpath("mcs", "AR6_Monte_Carlo.jl"))
+
 # Load helper functions and MimiFAIRv1.6.2 model commponent files.
 include("helper_functions.jl")
 
