@@ -58,7 +58,7 @@ Note that the original parameter samples are stored in `model_data/fair-1.6.2-wg
 The `run_mcs` function is the primary user-facing function provided for the monte carlo simulation and has the signature and function arguments as follows:
 
 ```julia
-    run_mcs(;trials::Int64 = 2337, 
+    run_mcs(;trials::Int64 = 2237, 
         output_dir::Union{String, Nothing} = nothing, 
         save_trials::Bool = false,
         m::Mimi.Model = get_model())

@@ -2,7 +2,7 @@ using Distributions, Dates, Mimi, CSVFiles, DataFrames
 import Mimi: SampleStore, add_RV!, add_transform!
 
 """
-    run_mcs(;trials::Int64 = 2337, 
+    run_mcs(;trials::Int64 = 2237, 
         output_dir::Union{String, Nothing} = nothing, 
         save_trials::Bool = false,
         m::Mimi.Model = get_model())
@@ -12,7 +12,7 @@ and save data into the `output_dir` folder, optionally also saving trials if
 `save_trials` is set to `true.` If no model is provided, use the default model 
 returned by get_model().
 """
-function run_mcs(;trials::Int64 = 2337, 
+function run_mcs(;trials::Int64 = 2237, 
                     output_dir::Union{String, Nothing} = nothing, 
                     save_trials::Bool = false,
                     m::Mimi.Model = get_model())
