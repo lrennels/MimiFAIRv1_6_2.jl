@@ -74,11 +74,17 @@ Calling `create_fair_monte_carlo` as follows:
 ```julia
 results = MimiFAIRv1_6_2.run_mcs(trials = 100, output_directory = path, save_trials = true)
 explore(results)
+Mimi.plot(results, :temperature, :T; interactive = true)
 ```
-will run a Monte Carlo simulation with 1000 trials, and return a Mimi.SimulationInstance object that can be `explore`d with a UI (note this is fairly slow at the moment it is under improvement). The output variables, currently temperature and co2, will be saved to the `output_directory` as will all trials values in `trials.csv`.  Adding more variables to output is a matter of augmenting the following section of code.  Feel free to contact the authors with requests on more outputs, or open a PR doing so yourself.
+will run a Monte Carlo simulation with 1000 trials, and return a Mimi.SimulationInstance object that can be `explore`d with a UI (note this is fairly slow at the moment it is under improvement), or display a particular plot for an output variable.
+
+The output variables, currently temperature and co2, will be saved to the `output_directory` as will all trials values in `trials.csv`.  Adding more variables to output is a matter of augmenting the following section of code.  Feel free to contact the authors with requests on more outputs, or open a PR doing so yourself.
 ```
 # define the Monte Carlo Simulation
 mcs = @defsim begin
     save(temperature.T, co2_cycle.co2)
 end
 ```
+\
+\
+![Illustrative Example of FAIR Temperatures (n = 100)](https://github.com/FrankErrickson/MimiFAIRv1_6_2.jl/blob/main/plot_1.svg)
