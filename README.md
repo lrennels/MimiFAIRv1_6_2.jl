@@ -67,20 +67,24 @@ The `run_mcs` function is the primary user-facing function provided for the mont
 This function returns the results of a Monte Carlo Simulation with the defined 
 number of trials and save data into the `output_dir` folder, optionally also saving 
 trials if `save_trials` is set to `true.` If no model is provided, use the default
-model returned by get_model(). Call this function as follows:
+model returned by get_model(). If an `output_dir` is not provided, data will be
+saved to the `output` folder in this repository in a subfolder named based on the 
+Date, Time, and number of trials.
+
+Call this function as follows:
 
 ```julia
 results = MimiFAIRv1_6_2.run_mcs(trials = 100, output_directory = path, save_trials = true)
 explore(results)
 Mimi.plot(results, :temperature, :T; interactive = true)
 ```
-will run a Monte Carlo simulation with 1000 trials, and return a Mimi.SimulationInstance object that can be `explore`d with a UI (note this is fairly slow at the moment it is under improvement), or display a particular plot for an output variable.
+will run a Monte Carlo simulation with 1000 trials, and return a Mimi.SimulationInstance object that can be `explore`d with a UI (note this is fairly slow at the moment it is under improvement), or display a particular plot for an output variable. Output variable data and trials data will be saved in `path`, or if this isn't provided in the `output` folder in this repository in a subfolder named based on the Date, Time, and number of trials.
 \
 \
 ![Illustrative Example of FAIR Temperatures (n = 100)](https://github.com/FrankErrickson/MimiFAIRv1_6_2.jl/blob/main/plot_1.svg)
 
 The output variables, currently temperature and co2, will be saved to the `output_directory` as will all trials values in `trials.csv`.  Adding more variables to output is a matter of augmenting the following section of code.  Feel free to contact the authors with requests on more outputs, or open a PR doing so yourself.
-```
+```julia
 # define the Monte Carlo Simulation
 mcs = @defsim begin
     save(temperature.T, co2_cycle.co2)
