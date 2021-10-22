@@ -61,6 +61,11 @@
             # Calculate iIRF100.
             v.iIRFT100_co2[t] = min(p.r0_co2 + p.rC_co2 * (v.cumulative_emissions_CO2[t-1] - v.airborne_emissions_CO2[t-1]) + p.rT_co2 * p.temperature[t-1], p.iIRF_max)
 
+            # Add a check for negative iIRF100 values (assume they remain fixed at previous value if going negative).
+            if v.iIRFT100_co2[t] <= 0.0
+                v.iIRF100_co2[t] =  v.iIRF100_co2[t-1]
+            end
+
             # Calculate state-dependent lifetime adjustment term based on iIRF100 value.
             v.α_co2[t] = v.g0_co2 * sinh(v.iIRFT100_co2[t] / v.g1_co2)
 
