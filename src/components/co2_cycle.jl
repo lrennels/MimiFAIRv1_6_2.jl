@@ -63,7 +63,7 @@
 
             # Add a check for negative iIRF100 values (assume they remain fixed at previous value if going negative).
             if v.iIRFT100_co2[t] <= 0.0
-                v.iIRF100_co2[t] =  v.iIRF100_co2[t-1]
+                v.iIRFT100_co2[t] =  v.iIRFT100_co2[t-1]
             end
 
             # Calculate state-dependent lifetime adjustment term based on iIRF100 value.
