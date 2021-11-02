@@ -57,6 +57,10 @@ function parse_mcs_params(filepath::String = joinpath(@__DIR__, "..", "..", "dat
     n = 2237 # total number of available samples
     fair_params = JSON.parsefile(filepath);
 
+    # Names of minor greenhouse gases and ozone-depleting substances (used or indexing).
+    other_ghg_names = ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "SF6"]
+    ods_names       = ["CFC_11", "CFC_12", "CFC_113", "CFC_114", "CFC_115", "CARB_TET", "MCF", "HCFC_22", "HCFC_141B", "HCFC_142B", "HALON1211", "HALON1202", "HALON1301", "HALON2402", "CH3BR", "CH3CL"]
+    
     # Carbon cycle
 
     for p in ["r0", "rt", "rc"]
@@ -176,13 +180,13 @@ function parse_mcs_params(filepath::String = joinpath(@__DIR__, "..", "..", "dat
     scale_other_ghg = [fair_params[i]["scale"][4:15] for i in 1:n]
     scale_other_ghg = reduce(hcat, scale_other_ghg)'
     scale_other_ghg = DataFrame(scale_other_ghg, :auto) |>
-        i -> rename!(i, ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "SF6"]) |>
+        i -> rename!(i, other_ghg_names) |>
         save(joinpath(@__DIR__, "..", "..", "data", "mcs_params", "fair_mcs_params_scale_other_ghg.csv"))
 
     scale_ods = [fair_params[i]["scale"][16:31] for i in 1:n]
     scale_ods = reduce(hcat, scale_ods)'
     scale_ods = DataFrame(scale_ods, :auto) |>
-        i -> rename!(i, ["CFC_11", "CFC_12", "CFC_113", "CFC_114", "CFC_115", "CARB_TET", "MCF", "HCFC_22", "HCFC_141B", "HCFC_142B", "HALON1211", "HALON1202", "HALON1301", "HALON2402", "CH3BR", "CH3CL"]) |>
+        i -> rename!(i, ods_names) |>
         save(joinpath(@__DIR__, "..", "..", "data", "mcs_params", "fair_mcs_params_scale_ods.csv"))
 
     # Ozone radiative forcing - select from a vector of 6 elements
