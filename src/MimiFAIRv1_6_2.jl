@@ -52,12 +52,13 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     # added in exact order of other_ghg_gases since they are indexed by name below, but doing so for cleanliness
     if ar6_scenario == "ssp460"
         # don't have Leach et al. data for ssp460, so use ssp370 as a proxy
+        additional_hfc_forcings = load(joinpath(@__DIR__, "..", "data", "model_data", "RCMIP_FAIRv2_Leach2021_AdditionalHFCs_ssp370_1750_2300.csv"), skiplines_begin=6) |> DataFrame
     else
         additional_hfc_forcings = load(joinpath(@__DIR__, "..", "data", "model_data", "RCMIP_FAIRv2_Leach2021_AdditionalHFCs_$(ar6_scenario)_1750_2300.csv"), skiplines_begin=6) |> DataFrame
-        for hfc in [:HFC152a, :HFC236fa, :HFC365mfc]
-            col = findfirst(i -> i == "SF6", names(ar6_emissions_raw)) - 1 # put them before SF6
-            insertcols!(ar6_emissions_raw, col, hfc => additional_hfc_forcings[!, hfc])
-        end
+    end
+    for hfc in [:HFC152a, :HFC236fa, :HFC365mfc]
+        col = findfirst(i -> i == "SF6", names(ar6_emissions_raw)) - 1 # put them before SF6
+        insertcols!(ar6_emissions_raw, col, hfc => additional_hfc_forcings[!, hfc] .* 1e3) # convert from Mt/yr to kT/yr
     end
 
     # Subset AR6 emissions to proper years.
