@@ -25,6 +25,7 @@ function load_fair_data(start_year::Int, end_year::Int, rcp_scenario::String)
 
     # Create vector of names for minor greenhouse gases to loop over.
     other_ghg_names = ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "HFC152a", "HFC236fa", "HFC365mfc", "SF6", "CFC_11", "CFC_12", "CFC_113", "CFC_114", "CFC_115", "CARB_TET", "MCF", "HCFC_22", "HCFC_141B", "HCFC_142B", "HALON1211", "HALON1202", "HALON1301", "HALON2402", "CH3BR", "CH3CL"]
+    additional_hfcs = ["HFC152a", "HFC236fa", "HFC365mfc"]
 
     #---------------------------------------
     # Read in relevant data sets.
@@ -66,7 +67,14 @@ function load_fair_data(start_year::Int, end_year::Int, rcp_scenario::String)
 
     # Other greenhouse gases
     for i in other_ghg_names
-        emissions[!,Symbol(i)] = rcp_emissions_raw[start_index:end_index, Symbol(i)]
+        if i in additional_hfcs
+            # we don't have direct FAIR data from the RCPs for these yet, nor do
+            # we use them since we base data on AR6, so use dummy values here 
+            # for now (TODO LFR)
+            emissions[!,Symbol(i)] = fill(missing, length(start_index:end_index))
+        else
+            emissions[!,Symbol(i)] = rcp_emissions_raw[start_index:end_index, Symbol(i)]
+        end
     end
 
     #---------------------------------------
