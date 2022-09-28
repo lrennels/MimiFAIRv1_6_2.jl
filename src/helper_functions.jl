@@ -68,9 +68,10 @@ function load_fair_data(start_year::Int, end_year::Int, rcp_scenario::String)
     # Other greenhouse gases
     for i in other_ghg_names
         if i in additional_hfcs
-            # we don't have direct FAIR data from the RCPs for these yet, nor do
-            # we use them since we base data on AR6, so use dummy values here 
-            # for now (TODO LFR)
+            # (HFC ADDITION NOTE) we have not pulled these HFCs for the raw RCP 
+            # scenarios yet, but we don't need them since we base data on AR6, so
+            # just use dummy values to prevent errors -- these missing data will not
+            # be used, and if they are Mimi will error when indexing a missing
             emissions[!,Symbol(i)] = fill(missing, length(start_index:end_index))
         else
             emissions[!,Symbol(i)] = rcp_emissions_raw[start_index:end_index, Symbol(i)]
