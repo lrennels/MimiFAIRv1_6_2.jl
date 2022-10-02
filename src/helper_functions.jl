@@ -21,7 +21,7 @@
 function load_fair_data(start_year::Int, end_year::Int, rcp_scenario::String)
 
     # Calculate indicies to extract RCP data (RCP data spans 1765-2500)
-    start_index, end_index = findall((in)([start_year, end_year]), collect(1765:2500))
+    start_index, end_index = indexin([start_year, end_year], collect(1765:2500))
 
     # Create vector of names for minor greenhouse gases to loop over.
     other_ghg_names = ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "SF6", "CFC_11", "CFC_12", "CFC_113", "CFC_114", "CFC_115", "CARB_TET", "MCF", "HCFC_22", "HCFC_141B", "HCFC_142B", "HALON1211", "HALON1202", "HALON1301", "HALON2402", "CH3BR", "CH3CL"]
@@ -93,7 +93,7 @@ function load_fair_data(start_year::Int, end_year::Int, rcp_scenario::String)
     mol_wt_carbon = gas_data[gas_data.gas .== "C", :mol_weight][1]
     mol_wt_n2     = gas_data[gas_data.gas .== "N2", :mol_weight][1]
     mol_wt_ch4    = gas_data[gas_data.gas .== "CH4", :mol_weight][1]
-    mol_wt_others = gas_data[findall((in)(other_ghg_names), gas_data.gas), :mol_weight]
+    mol_wt_others = gas_data[indexin(other_ghg_names, gas_data.gas), :mol_weight]
 
     # Calculate CO₂ conversion from GtC to ppm.
     emiss2conc_carbon = (mass_atmos / 1.0e18) * (mol_wt_carbon / mol_wt_air)
