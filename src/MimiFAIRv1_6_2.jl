@@ -205,7 +205,7 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
 
     # ---- Ozone Radiative Forcing ---- #
     set_param!(m, :o3_forcing, :total_forcing_O₃_0, 0.0)
-    set_param!(m, :o3_forcing, :Br, gas_data[findexin(ods_names, gas_data.gas), :br_atoms])
+    set_param!(m, :o3_forcing, :Br, gas_data[indexin(ods_names, gas_data.gas), :br_atoms])
     set_param!(m, :o3_forcing, :Cl, gas_data[indexin(ods_names, gas_data.gas), :cl_atoms])
     set_param!(m, :o3_forcing, :FC, gas_data[indexin(ods_names, gas_data.gas), :strat_frac])
     set_param!(m, :o3_forcing, :feedback, -0.037)
@@ -236,7 +236,7 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :aerosol_indirect_forcing, :rf_scale_aero_indirect, 1.0)
 
     # ---- Other Well-Mixed Greenhouse Gas Radiative Forcings ---- #
-    set_param!(m, :other_ghg_forcing, :other_ghg_radiative_efficiency, gas_data[findexin(other_ghg_names, gas_data.gas), :rad_eff])
+    set_param!(m, :other_ghg_forcing, :other_ghg_radiative_efficiency, gas_data[indexin(other_ghg_names, gas_data.gas), :rad_eff])
     connect_param!(m, :other_ghg_forcing => :conc_other_ghg, :other_ghg_cycles => :conc_other_ghg)
 
     # ---- Ozone-Depleting Substance Radiative Forcings ---- #
