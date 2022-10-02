@@ -165,16 +165,16 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :n2o_cycle, :N₂O_0, gas_data[gas_data.gas .== "N2O", :pi_conc_ar6][1])
 
     # ---- Other Well-Mixed Greenhouse Gas Cycles ---- #
-    set_param!(m, :other_ghg_cycles, :τ_other_ghg, gas_data[findall((in)(other_ghg_names), gas_data.gas), :lifetimes])
+    set_param!(m, :other_ghg_cycles, :τ_other_ghg, gas_data[indexin(other_ghg_names, gas_data.gas), :lifetimes])
     set_param!(m, :other_ghg_cycles, :emiss_other_ghg, Matrix(ar6_emissions[!,Symbol.(other_ghg_names)]))
-    set_param!(m, :other_ghg_cycles, :emiss2conc_other_ghg, conversions[findall((in)(other_ghg_names), conversions.gases), :emiss2conc])
-    set_param!(m, :other_ghg_cycles, :other_ghg_0, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :other_ghg_cycles, :emiss2conc_other_ghg, conversions[indexin(other_ghg_names, conversions.gases), :emiss2conc])
+    set_param!(m, :other_ghg_cycles, :other_ghg_0, gas_data[indexin(other_ghg_names, gas_data.gas), :pi_conc_ar6])
 
     # ---- Ozone-Depleting Substance Gas Cycles ---- #
-    set_param!(m, :o3_depleting_substance_cycles, :τ_ods, gas_data[findall((in)(ods_names), gas_data.gas), :lifetimes])
+    set_param!(m, :o3_depleting_substance_cycles, :τ_ods, gas_data[indexin(ods_names, gas_data.gas), :lifetimes])
     set_param!(m, :o3_depleting_substance_cycles, :emiss_ods, Matrix(ar6_emissions[!,Symbol.(ods_names)]))
-    set_param!(m, :o3_depleting_substance_cycles, :emiss2conc_ods, conversions[findall((in)(ods_names), conversions.gases), :emiss2conc])
-    set_param!(m, :o3_depleting_substance_cycles, :ods_0, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :o3_depleting_substance_cycles, :emiss2conc_ods, conversions[indexin(ods_names, conversions.gases), :emiss2conc])
+    set_param!(m, :o3_depleting_substance_cycles, :ods_0, gas_data[indexin(ods_names, gas_data.gas), :pi_conc_ar6])
 
     # ---- Carbon Dioxide Radiative Forcing ---- #
     set_param!(m, :co2_forcing, :F2x, 3.71)
@@ -205,9 +205,9 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
 
     # ---- Ozone Radiative Forcing ---- #
     set_param!(m, :o3_forcing, :total_forcing_O₃_0, 0.0)
-    set_param!(m, :o3_forcing, :Br, gas_data[findall((in)(ods_names), gas_data.gas), :br_atoms])
-    set_param!(m, :o3_forcing, :Cl, gas_data[findall((in)(ods_names), gas_data.gas), :cl_atoms])
-    set_param!(m, :o3_forcing, :FC, gas_data[findall((in)(ods_names), gas_data.gas), :strat_frac])
+    set_param!(m, :o3_forcing, :Br, gas_data[indexin(ods_names, gas_data.gas), :br_atoms])
+    set_param!(m, :o3_forcing, :Cl, gas_data[indexin(ods_names, gas_data.gas), :cl_atoms])
+    set_param!(m, :o3_forcing, :FC, gas_data[indexin(ods_names, gas_data.gas), :strat_frac])
     set_param!(m, :o3_forcing, :feedback, -0.037)
     set_param!(m, :o3_forcing, :Ψ_CH₄, 2.33379720e-04)
     set_param!(m, :o3_forcing, :Ψ_N₂O, 1.27179106e-03)
@@ -236,11 +236,11 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :aerosol_indirect_forcing, :rf_scale_aero_indirect, 1.0)
 
     # ---- Other Well-Mixed Greenhouse Gas Radiative Forcings ---- #
-    set_param!(m, :other_ghg_forcing, :other_ghg_radiative_efficiency, gas_data[findall((in)(other_ghg_names), gas_data.gas), :rad_eff])
+    set_param!(m, :other_ghg_forcing, :other_ghg_radiative_efficiency, gas_data[indexin(other_ghg_names, gas_data.gas), :rad_eff])
     connect_param!(m, :other_ghg_forcing => :conc_other_ghg, :other_ghg_cycles => :conc_other_ghg)
 
     # ---- Ozone-Depleting Substance Radiative Forcings ---- #
-    set_param!(m, :o3_depleting_substance_forcing, :ods_radiative_efficiency, gas_data[findall((in)(ods_names), gas_data.gas), :rad_eff])
+    set_param!(m, :o3_depleting_substance_forcing, :ods_radiative_efficiency, gas_data[indexin(ods_names, gas_data.gas), :rad_eff])
     connect_param!(m, :o3_depleting_substance_forcing => :conc_ods, :o3_depleting_substance_cycles => :conc_ods)
 
     # ---- Contrails Radiative Forcing ---- #
@@ -317,8 +317,8 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :CH₄_pi, gas_data[gas_data.gas .== "CH4", :pi_conc_ar6][1])
     set_param!(m, :CO₂_pi, gas_data[gas_data.gas .== "CO2", :pi_conc_ar6][1])
     set_param!(m, :N₂O_pi, gas_data[gas_data.gas .== "N2O", :pi_conc_ar6][1])
-    set_param!(m, :ods_pi, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc_ar6])
-    set_param!(m, :other_ghg_pi, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :ods_pi, gas_data[indexin(ods_names, gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :other_ghg_pi, gas_data[indexin(other_ghg_names, gas_data.gas), :pi_conc_ar6])
     set_param!(m, :SOx_emiss, ar6_emissions.SOx)
     set_param!(m, :BC_emiss, ar6_emissions.BC)
     set_param!(m, :OC_emiss, ar6_emissions.OC)
