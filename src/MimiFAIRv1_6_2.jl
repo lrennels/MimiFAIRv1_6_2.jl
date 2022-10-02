@@ -48,8 +48,9 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     # Load IPCC AR6 emissions scenario used for FAIRv1.6.2 ensemble runs (options = "ssp119", "ssp126", "ssp245", "ssp370", "ssp460", "ssp585").
     ar6_emissions_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "AR6_emissions_"*ar6_scenario*"_1750_2300.csv")))
 
-    # (HFC ADDITION NOTE) Add three more HFCs from the FAIRv2 Leach et al. 2021 RCMIP scenarios, noting here they should not have to be
-    # added in exact order of other_ghg_gases since they are indexed by name below, but doing so for cleanliness
+    # (HFC ADDITION NOTE) Add three more HFCs from the FAIRv2 Leach et al. 2021 RCMIP scenarios
+    # in the exact same order as other_ghg_names -- although should use indexing
+    # below such that order won't matter
     if ar6_scenario == "ssp460"
         # don't have Leach et al. data for ssp460, so use ssp370 as a proxy
         additional_hfc_forcings = load(joinpath(@__DIR__, "..", "data", "model_data", "RCMIP_FAIRv2_Leach2021_AdditionalHFCs_ssp370_1750_2300.csv"), skiplines_begin=6) |> DataFrame
@@ -177,16 +178,16 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :n2o_cycle, :N₂O_0, gas_data[gas_data.gas .== "N2O", :pi_conc_ar6][1])
 
     # ---- Other Well-Mixed Greenhouse Gas Cycles ---- #
-    set_param!(m, :other_ghg_cycles, :τ_other_ghg, gas_data[findall((in)(other_ghg_names), gas_data.gas), :lifetimes])
+    set_param!(m, :other_ghg_cycles, :τ_other_ghg, gas_data[indexin(other_ghg_names, gas_data.gas), :lifetimes])
     set_param!(m, :other_ghg_cycles, :emiss_other_ghg, Matrix(ar6_emissions[!,Symbol.(other_ghg_names)]))
-    set_param!(m, :other_ghg_cycles, :emiss2conc_other_ghg, conversions[findall((in)(other_ghg_names), conversions.gases), :emiss2conc])
-    set_param!(m, :other_ghg_cycles, :other_ghg_0, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :other_ghg_cycles, :emiss2conc_other_ghg, conversions[indexin(other_ghg_names, conversions.gases), :emiss2conc])
+    set_param!(m, :other_ghg_cycles, :other_ghg_0, gas_data[indexin(other_ghg_names, gas_data.gas), :pi_conc_ar6])
 
     # ---- Ozone-Depleting Substance Gas Cycles ---- #
-    set_param!(m, :o3_depleting_substance_cycles, :τ_ods, gas_data[findall((in)(ods_names), gas_data.gas), :lifetimes])
+    set_param!(m, :o3_depleting_substance_cycles, :τ_ods, gas_data[indexin(ods_names, gas_data.gas), :lifetimes])
     set_param!(m, :o3_depleting_substance_cycles, :emiss_ods, Matrix(ar6_emissions[!,Symbol.(ods_names)]))
-    set_param!(m, :o3_depleting_substance_cycles, :emiss2conc_ods, conversions[findall((in)(ods_names), conversions.gases), :emiss2conc])
-    set_param!(m, :o3_depleting_substance_cycles, :ods_0, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :o3_depleting_substance_cycles, :emiss2conc_ods, conversions[indexin(ods_names, conversions.gas), :emiss2conc])
+    set_param!(m, :o3_depleting_substance_cycles, :ods_0, gas_data[indexin(ods_names, gas_data.gas), :pi_conc_ar6])
 
     # ---- Carbon Dioxide Radiative Forcing ---- #
     set_param!(m, :co2_forcing, :F2x, 3.71)
@@ -217,9 +218,9 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
 
     # ---- Ozone Radiative Forcing ---- #
     set_param!(m, :o3_forcing, :total_forcing_O₃_0, 0.0)
-    set_param!(m, :o3_forcing, :Br, gas_data[findall((in)(ods_names), gas_data.gas), :br_atoms])
-    set_param!(m, :o3_forcing, :Cl, gas_data[findall((in)(ods_names), gas_data.gas), :cl_atoms])
-    set_param!(m, :o3_forcing, :FC, gas_data[findall((in)(ods_names), gas_data.gas), :strat_frac])
+    set_param!(m, :o3_forcing, :Br, gas_data[indexin(ods_names, gas_data.gas), :br_atoms])
+    set_param!(m, :o3_forcing, :Cl, gas_data[indexin(ods_names, gas_data.gas), :cl_atoms])
+    set_param!(m, :o3_forcing, :FC, gas_data[indexin(ods_names, gas_data.gas), :strat_frac])
     set_param!(m, :o3_forcing, :feedback, -0.037)
     set_param!(m, :o3_forcing, :Ψ_CH₄, 2.33379720e-04)
     set_param!(m, :o3_forcing, :Ψ_N₂O, 1.27179106e-03)
@@ -248,11 +249,11 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :aerosol_indirect_forcing, :rf_scale_aero_indirect, 1.0)
 
     # ---- Other Well-Mixed Greenhouse Gas Radiative Forcings ---- #
-    set_param!(m, :other_ghg_forcing, :other_ghg_radiative_efficiency, gas_data[findall((in)(other_ghg_names), gas_data.gas), :rad_eff])
+    set_param!(m, :other_ghg_forcing, :other_ghg_radiative_efficiency, gas_data[indexin(other_ghg_names, gas_data.gas), :rad_eff])
     connect_param!(m, :other_ghg_forcing => :conc_other_ghg, :other_ghg_cycles => :conc_other_ghg)
 
     # ---- Ozone-Depleting Substance Radiative Forcings ---- #
-    set_param!(m, :o3_depleting_substance_forcing, :ods_radiative_efficiency, gas_data[findall((in)(ods_names), gas_data.gas), :rad_eff])
+    set_param!(m, :o3_depleting_substance_forcing, :ods_radiative_efficiency, gas_data[indexin(other_ghg_names, gas_data.gas), :rad_eff])
     connect_param!(m, :o3_depleting_substance_forcing => :conc_ods, :o3_depleting_substance_cycles => :conc_ods)
 
     # ---- Contrails Radiative Forcing ---- #
@@ -329,8 +330,8 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     set_param!(m, :CH₄_pi, gas_data[gas_data.gas .== "CH4", :pi_conc_ar6][1])
     set_param!(m, :CO₂_pi, gas_data[gas_data.gas .== "CO2", :pi_conc_ar6][1])
     set_param!(m, :N₂O_pi, gas_data[gas_data.gas .== "N2O", :pi_conc_ar6][1])
-    set_param!(m, :ods_pi, gas_data[findall((in)(ods_names), gas_data.gas), :pi_conc_ar6])
-    set_param!(m, :other_ghg_pi, gas_data[findall((in)(other_ghg_names), gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :ods_pi, gas_data[indexin(ods_names, gas_data.gas), :pi_conc_ar6])
+    set_param!(m, :other_ghg_pi, gas_data[indexin(other_ghg_names, gas_data.gas), :pi_conc_ar6])
     set_param!(m, :SOx_emiss, ar6_emissions.SOx)
     set_param!(m, :BC_emiss, ar6_emissions.BC)
     set_param!(m, :OC_emiss, ar6_emissions.OC)
