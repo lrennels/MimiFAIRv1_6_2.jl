@@ -74,11 +74,11 @@ Date, Time, and number of trials.
 Call this function as follows:
 
 ```julia
-results = MimiFAIRv1_6_2.run_mcs(trials = 100, output_directory = path, save_trials = true)
+results = MimiFAIRv1_6_2.run_mcs(trials = 100, output_dir = path, save_trials = true)
 explore(results)
 Mimi.plot(results, :temperature, :T; interactive = true)
 ```
-will run a Monte Carlo simulation with 1000 trials, and return a Mimi.SimulationInstance object that can be `explore`d with a UI (note this is fairly slow at the moment it is under improvement), or display a particular plot for an output variable. Output variable data and trials data will be saved in `path`, or if this isn't provided in the `output` folder in this repository in a subfolder named based on the Date, Time, and number of trials.
+will run a Monte Carlo simulation with 100 trials, and return a Mimi.SimulationInstance object that can be `explore`d with a UI (note this is fairly slow at the moment it is under improvement), or display a particular plot for an output variable. Output variable data and trials data will be saved in `path`, or if this isn't provided in the `output` folder in this repository in a subfolder named based on the Date, Time, and number of trials.
 \
 \
 ![Illustrative Example of FAIR Temperatures (n = 100)](https://github.com/FrankErrickson/MimiFAIRv1_6_2.jl/blob/main/plot_1.svg)
