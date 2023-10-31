@@ -48,19 +48,6 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     # Load IPCC AR6 emissions scenario used for FAIRv1.6.2 ensemble runs (options = "ssp119", "ssp126", "ssp245", "ssp370", "ssp460", "ssp585").
     ar6_emissions_raw = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "AR6_emissions_"*ar6_scenario*"_1750_2300.csv")))
 
-    # (HFC ADDITION NOTE) Add three more HFCs from the FAIRv2 Leach et al. 2021 RCMIP scenarios
-    # in the exact same order as other_ghg_names -- although should use indexing
-    # below such that order won't matter
-    if ar6_scenario == "ssp460"
-        # don't have Leach et al. data for ssp460, so use ssp370 as a proxy
-        additional_hfc_forcings = load(joinpath(@__DIR__, "..", "data", "model_data", "RCMIP_FAIRv2_Leach2021_AdditionalHFCs_ssp370_1750_2300.csv"), skiplines_begin=6) |> DataFrame
-    else
-        additional_hfc_forcings = load(joinpath(@__DIR__, "..", "data", "model_data", "RCMIP_FAIRv2_Leach2021_AdditionalHFCs_$(ar6_scenario)_1750_2300.csv"), skiplines_begin=6) |> DataFrame
-    end
-    for hfc in [:HFC152a, :HFC236fa, :HFC365mfc]
-        col = findfirst(i -> i == "SF6", names(ar6_emissions_raw)) - 1 # put them before SF6
-        insertcols!(ar6_emissions_raw, col, hfc => additional_hfc_forcings[!, hfc] .* 1e3) # convert from Mt/yr to kT/yr
-    end
 
     # Subset AR6 emissions to proper years.
     emission_indices = indexin(collect(start_year:end_year), ar6_emissions_raw.Year)
@@ -103,9 +90,9 @@ function get_model(;ar6_scenario::String="ssp245", start_year::Int=1750, end_yea
     ar6_volcanic_forcing[index_2019:(index_2019+10)] = ar6_volcanic_forcing[index_2019] .* collect(range(1,0,length=11))
 
     # Names of minor greenhouse gases and ozone-depleting substances (used or indexing).
-    other_ghg_names = ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "HFC152a", "HFC236fa", "HFC365mfc", "SF6"]
+    other_ghg_names = ["CF4", "C2F6", "C6F14", "HFC23", "HFC32", "HFC43_10", "HFC125", "HFC134a", "HFC143a", "HFC227ea", "HFC245fa", "SF6"]
     ods_names       = ["CFC_11", "CFC_12", "CFC_113", "CFC_114", "CFC_115", "CARB_TET", "MCF", "HCFC_22", "HCFC_141B", "HCFC_142B", "HALON1211", "HALON1202", "HALON1301", "HALON2402", "CH3BR", "CH3CL"]
-
+ 
     # ---------------------------------------------
     # Initialize Mimi model.
     # ---------------------------------------------
